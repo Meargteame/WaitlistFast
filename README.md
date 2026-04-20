@@ -1,20 +1,117 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# WaitlistFast
 
-# Run and deploy your AI Studio app
+Launch a startup waitlist in 30 seconds and validate your idea before building.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/574994bf-3600-400f-a39f-145f213b58c1
+- 🚀 Create waitlist pages in seconds with AI
+- 📧 Collect and manage email signups
+- 📊 Real-time analytics and conversion tracking
+- 🔐 User authentication
+- 💾 SQLite database
+- 🤖 Gemini AI integration for content generation
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
+### Prerequisites
 
+- Node.js 18+
+- npm or yarn
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   - Copy `.env.example` to `.env.local`
+   - Add your Gemini API key to `.env.local`
+
+4. Seed the database (optional):
+   ```bash
+   npm run seed
+   ```
+
+### Development
+
+Run both frontend and backend:
+```bash
+npm run dev:all
+```
+
+Or run them separately:
+```bash
+# Terminal 1 - Backend API
+npm run dev:server
+
+# Terminal 2 - Frontend
+npm run dev
+```
+
+The app will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+
+### Demo Credentials
+
+After seeding:
+- Email: `demo@waitlistfast.com`
+- Password: `demo123`
+- Example page: http://localhost:3000/w/study-ai
+
+## Project Structure
+
+```
+├── src/
+│   ├── pages/          # React pages
+│   ├── lib/            # API client
+│   ├── App.tsx         # Landing page
+│   └── Router.tsx      # Client-side routing
+├── server/
+│   ├── index.ts        # Express API server
+│   ├── db.ts           # Database setup
+│   ├── auth.ts         # Authentication logic
+│   ├── waitlist.ts     # Waitlist CRUD
+│   ├── gemini.ts       # AI content generation
+│   └── seed.ts         # Database seeding
+└── waitlist.db         # SQLite database (created on first run)
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create account
+- `POST /api/auth/login` - Sign in
+- `GET /api/auth/me` - Get current user
+
+### Waitlists
+- `POST /api/waitlists/generate` - Generate content with AI
+- `POST /api/waitlists` - Create waitlist
+- `GET /api/waitlists` - List user's waitlists
+- `GET /api/waitlists/:slug` - Get waitlist by slug
+- `POST /api/waitlists/:slug/signup` - Add email signup
+- `GET /api/waitlists/:slug/signups` - Get all signups (auth required)
+- `GET /api/waitlists/:slug/analytics` - Get analytics (auth required)
+
+## Building for Production
+
+```bash
+npm run build
+npm run build:server
+npm start
+```
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript, Tailwind CSS v4, Framer Motion
+- **Backend**: Express, Node.js
+- **Database**: better-sqlite3
+- **AI**: Google Gemini API
+- **Build**: Vite
+
+## License
+
+MIT

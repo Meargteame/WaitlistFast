@@ -41,10 +41,10 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="hidden sm:block text-sm font-medium text-zinc-600 hover:text-zinc-900 px-4">Login</button>
-          <button className="bg-zinc-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200">
+          <a href="/login" className="hidden sm:block text-sm font-medium text-zinc-600 hover:text-zinc-900 px-4">Login</a>
+          <a href="/login" className="bg-zinc-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200">
             Get Started
-          </button>
+          </a>
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-zinc-600">
               {isOpen ? <X /> : <Menu />}
@@ -65,9 +65,9 @@ const Navbar = () => {
             <a href="#solution" onClick={() => setIsOpen(false)} className="text-lg font-medium text-zinc-600">Solution</a>
             <a href="#features" onClick={() => setIsOpen(false)} className="text-lg font-medium text-zinc-600">Features</a>
             <a href="#pricing" onClick={() => setIsOpen(false)} className="text-lg font-medium text-zinc-600">Pricing</a>
-            <button className="bg-zinc-900 text-white px-5 py-3 rounded-2xl text-lg font-medium">
+            <a href="/login" className="bg-zinc-900 text-white px-5 py-3 rounded-2xl text-lg font-medium">
               Create Your Waitlist
-            </button>
+            </a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -101,13 +101,13 @@ const Hero = () => {
               Validate your startup idea before writing a single line of code. Create a beautiful waitlist page and collect early users instantly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-zinc-900 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-800 transition-all shadow-2xl shadow-zinc-300 flex items-center justify-center gap-2 group">
+              <a href="/login" className="bg-zinc-900 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-800 transition-all shadow-2xl shadow-zinc-300 flex items-center justify-center gap-2 group">
                 Create Your Waitlist
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="bg-white text-zinc-900 border border-zinc-200 px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-50 transition-all flex items-center justify-center gap-2">
+              </a>
+              <a href="/w/study-ai" className="bg-white text-zinc-900 border border-zinc-200 px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-50 transition-all flex items-center justify-center gap-2">
                 See Example Page
-              </button>
+              </a>
             </div>
           </motion.div>
         </div>
@@ -329,10 +329,10 @@ const Solution = () => {
                 </li>
               ))}
             </ul>
-            <button className="bg-zinc-900 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200 flex items-center gap-2">
+            <a href="/login" className="bg-zinc-900 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200 flex items-center gap-2">
               Start Validating Now
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -540,9 +540,9 @@ const Pricing = () => {
                 </li>
               ))}
             </ul>
-            <button className="w-full py-5 rounded-2xl border border-zinc-200 font-bold text-lg hover:bg-zinc-50 transition-all">
+            <a href="/login" className="block w-full py-5 rounded-2xl border border-zinc-200 font-bold text-lg hover:bg-zinc-50 transition-all text-center">
               Get Started for Free
-            </button>
+            </a>
           </div>
 
           <div className="bento-card p-12 bg-zinc-900 text-white border-zinc-800 relative overflow-hidden">
@@ -571,9 +571,9 @@ const Pricing = () => {
                 </li>
               ))}
             </ul>
-            <button className="w-full py-5 rounded-2xl bg-white text-zinc-900 font-bold text-lg shadow-2xl shadow-zinc-900/20 hover:bg-zinc-100 transition-all">
+            <a href="/login" className="block w-full py-5 rounded-2xl bg-white text-zinc-900 font-bold text-lg shadow-2xl shadow-zinc-900/20 hover:bg-zinc-100 transition-all text-center">
               Go Pro Now
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -592,10 +592,10 @@ const FinalCTA = () => {
             <p className="text-xl sm:text-2xl text-zinc-400 mb-12 leading-relaxed text-balance">
               Validate your startup idea before you build it. Join 5,000+ founders who use WaitlistFast to ship smarter.
             </p>
-            <button className="bg-white text-zinc-900 px-12 py-6 rounded-full text-xl font-bold hover:bg-zinc-100 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 mx-auto group">
+            <a href="/login" className="bg-white text-zinc-900 px-12 py-6 rounded-full text-xl font-bold hover:bg-zinc-100 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 mx-auto group">
               Create Your Waitlist Now
               <ArrowRight className="w-7 h-7 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </a>
             <p className="mt-8 text-zinc-500 font-medium">No credit card required. Start for free.</p>
           </div>
         </div>
