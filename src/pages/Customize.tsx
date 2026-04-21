@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DashboardLayout } from '../components/DashboardLayout';
+import DashboardLayout from '../components/DashboardLayout';
 import { TemplateSelector } from '../components/customization/TemplateSelector';
 import { ColorPicker } from '../components/customization/ColorPicker';
 import { FontSelector } from '../components/customization/FontSelector';

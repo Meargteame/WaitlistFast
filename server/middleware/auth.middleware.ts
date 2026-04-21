@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/auth.service';
+import { getUserById } from '../auth.js';
 
 // Extend Express Request type
 declare global {
@@ -48,9 +49,7 @@ export function requireVerifiedEmail(req: Request, res: Response, next: NextFunc
   }
 
   // Check if email is verified
-  const db = require('../db').default;
-  const stmt = db.prepare('SELECT email_verified FROM users WHERE id = ?');
-  const user = stmt.get(req.userId) as { email_verified: number } | undefined;
+  const user = getUserById(req.userId);
 
   if (!user || user.email_verified !== 1) {
     return res.status(403).json({ 

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { CheckCircle2 } from 'lucide-react';
 import { api } from '../lib/api';
-import { MinimalTemplate } from '../components/templates/MinimalTemplate';
-import { StartupTemplate } from '../components/templates/StartupTemplate';
-import { BoldTemplate } from '../components/templates/BoldTemplate';
+import MinimalTemplate from '../components/templates/MinimalTemplate';
+import StartupTemplate from '../components/templates/StartupTemplate';
+import BoldTemplate from '../components/templates/BoldTemplate';
 import { ProductTemplate } from '../components/templates/ProductTemplate';
 import { ComingSoonTemplate } from '../components/templates/ComingSoonTemplate';
 
@@ -52,17 +52,29 @@ export default function WaitlistPage() {
     if (!waitlist || !waitlist.waitlist) return null;
 
     const w = waitlist.waitlist;
+    
+    // Create props with both snake_case and camelCase for compatibility
+    const waitlistData = {
+      name: w.name,
+      description: w.description,
+      // snake_case (for Minimal, Startup, Bold)
+      logo_url: w.logo_url,
+      primary_color: w.primary_color || '#18181b',
+      background_value: w.background_value || '#FAFAFA',
+      cta_text: w.cta_text || 'Join the waitlist',
+      show_counter: w.show_counter !== 0,
+      signupCount: waitlist.signupCount || 0,
+      // camelCase (for Product, ComingSoon)
+      logoUrl: w.logo_url,
+      primaryColor: w.primary_color || '#18181b',
+      ctaText: w.cta_text || 'Join the waitlist',
+      showCounter: w.show_counter !== 0,
+      features: w.features_json ? JSON.parse(w.features_json) : [],
+      socialLinks: w.social_links_json ? JSON.parse(w.social_links_json) : [],
+    };
+    
     const templateProps = {
-      waitlist: {
-        name: w.name,
-        description: w.description,
-        logoUrl: w.logo_url,
-        primaryColor: w.primary_color || '#18181b',
-        ctaText: w.cta_text || 'Join the waitlist',
-        showCounter: w.show_counter !== 0,
-        features: w.features_json ? JSON.parse(w.features_json) : [],
-        socialLinks: w.social_links_json ? JSON.parse(w.social_links_json) : [],
-      },
+      waitlist: waitlistData as any,
       signupCount: waitlist.signupCount || 0,
       onSignup: handleSubmit,
     };

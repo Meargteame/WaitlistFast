@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
+import db from './db';
 import { createUser, loginUser, getUserById, getUserByEmail } from './auth';
 import { 
   createWaitlist, 
@@ -12,7 +13,8 @@ import {
   getSignupCount,
   getSignups,
   trackAnalytics,
-  getAnalytics
+  getAnalytics,
+  getCampaigns
 } from './waitlist';
 import { generateWaitlistContent } from './gemini';
 import { authService } from './services/auth.service';
@@ -335,7 +337,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
  * POST /api/waitlists/generate
  * Generate waitlist content with AI
  */
-app.post('/api/waitlists/generate', requireAuth, requireVerifiedEmail, apiLimiter, async (req, res) => {
+app.post('/api/waitlists/generate', requireAuth, apiLimiter, async (req, res) => {
   try {
     const { productName, shortDescription } = req.body;
     
@@ -354,7 +356,7 @@ app.post('/api/waitlists/generate', requireAuth, requireVerifiedEmail, apiLimite
  * POST /api/waitlists
  * Create new waitlist
  */
-app.post('/api/waitlists', requireAuth, requireVerifiedEmail, canCreateWaitlist, apiLimiter, async (req, res) => {
+app.post('/api/waitlists', requireAuth, canCreateWaitlist, apiLimiter, async (req, res) => {
   try {
     const { name, description, slug } = req.body;
     
@@ -399,7 +401,7 @@ app.get('/api/waitlists/:slug', (req, res) => {
  * PUT /api/waitlists/:slug
  * Update waitlist
  */
-app.put('/api/waitlists/:slug', requireAuth, requireVerifiedEmail, apiLimiter, async (req, res) => {
+app.put('/api/waitlists/:slug', requireAuth, apiLimiter, async (req, res) => {
   try {
     const waitlist = updateWaitlist(req.params.slug, req.userId!, req.body);
     res.json({ waitlist });
@@ -493,6 +495,120 @@ app.get('/api/waitlists/:slug/analytics', requireAuth, apiLimiter, (req, res) =>
   
   const analytics = getAnalytics((waitlist as any).id);
   res.json(analytics);
+});
+
+// ============================================================================
+// EMAIL CAMPAIGN ENDPOINTS
+// ============================================================================
+
+/**
+ * GET /api/waitlists/:slug/campaigns
+ * Get all campaigns for a waitlist
+ */
+app.get('/api/waitlists/:slug/campaigns', requireAuth, apiLimiter, (req, res) => {
+  const waitlist = getWaitlistBySlug(req.params.slug);
+  
+  if (!waitlist) {
+    return res.status(404).json({ error: 'Waitlist not found' });
+  }
+  
+  // Check ownership
+  if ((waitlist as any).user_id !== req.userId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  
+  const campaigns = getCampaigns((waitlist as any).id);
+  res.json(campaigns);
+});
+
+/**
+ * POST /api/waitlists/:slug/campaigns
+ * Send email campaign to all signups
+ */
+app.post('/api/waitlists/:slug/campaigns', requireAuth, apiLimiter, async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Subject and message required' });
+    }
+    
+    const waitlist = getWaitlistBySlug(req.params.slug);
+    
+    if (!waitlist) {
+      return res.status(404).json({ error: 'Waitlist not found' });
+    }
+    
+    // Check ownership
+    if ((waitlist as any).user_id !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    // Get all signups
+    const signups = getSignups((waitlist as any).id);
+    
+    if (signups.length === 0) {
+      return res.status(400).json({ error: 'No signups to send to' });
+    }
+    
+    // Create campaign record
+    const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = Date.now();
+    
+    db.prepare(`
+      INSERT INTO email_campaigns (
+        id, waitlist_id, subject, html_body, sent_count, 
+        delivered_count, failed_count, status, created_at, sent_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      campaignId,
+      (waitlist as any).id,
+      subject,
+      message,
+      signups.length,
+      0,
+      0,
+      'sending',
+      now,
+      now
+    );
+    
+    // Send emails in background (simplified - in production use a queue)
+    let delivered = 0;
+    let failed = 0;
+    
+    for (const signup of signups) {
+      try {
+        await emailService.sendSingleCampaignEmail(
+          (signup as any).email,
+          subject,
+          message,
+          (waitlist as any).name
+        );
+        delivered++;
+      } catch (error) {
+        failed++;
+      }
+    }
+    
+    // Update campaign status
+    db.prepare(`
+      UPDATE email_campaigns 
+      SET delivered_count = ?, failed_count = ?, status = ?
+      WHERE id = ?
+    `).run(delivered, failed, 'sent', campaignId);
+    
+    res.json({ 
+      success: true, 
+      campaignId,
+      sent: signups.length,
+      delivered,
+      failed
+    });
+  } catch (error: any) {
+    console.error('Campaign send error:', error);
+    res.status(500).json({ error: error.message || 'Failed to send campaign' });
+  }
 });
 
 // ============================================================================

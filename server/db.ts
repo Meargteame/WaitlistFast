@@ -18,6 +18,9 @@ db.exec(`
     reset_token TEXT,
     reset_token_expires INTEGER,
     subscription_tier TEXT DEFAULT 'free',
+    subscription_status TEXT,
+    subscription_id TEXT,
+    subscription_current_period_end INTEGER,
     stripe_customer_id TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER DEFAULT 0
@@ -71,6 +74,9 @@ db.exec(`
     waitlist_id TEXT NOT NULL,
     event_type TEXT NOT NULL,
     metadata TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    referrer_url TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY (waitlist_id) REFERENCES waitlists(id) ON DELETE CASCADE
   );

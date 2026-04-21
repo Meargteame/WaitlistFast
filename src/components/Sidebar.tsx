@@ -1,14 +1,18 @@
 import React from 'react';
 import { Zap, LayoutDashboard, Plus, CreditCard, LogOut } from 'lucide-react';
-import { clearSession } from '../lib/api';
+import { api } from '../lib/api';
 
 interface SidebarProps {
   currentPage?: string;
 }
 
 export default function Sidebar({ currentPage = 'dashboard' }: SidebarProps) {
-  function handleLogout() {
-    clearSession();
+  async function handleLogout() {
+    try {
+      await api.auth.logout();
+    } catch (error) {
+      // Ignore errors, just redirect
+    }
     window.location.href = '/';
   }
 

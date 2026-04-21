@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Zap } from 'lucide-react';
-import { api, setSession } from '../lib/api';
+import { api } from '../lib/api';
 import ErrorModal from '../components/ErrorModal';
 
 export default function Login() {
@@ -17,11 +17,13 @@ export default function Login() {
     setError(null);
 
     try {
-      const result = isLogin
-        ? await api.auth.login(email, password)
-        : await api.auth.signup(email, password);
-
-      setSession(result.sessionId);
+      if (isLogin) {
+        await api.auth.login(email, password);
+      } else {
+        await api.auth.signup(email, password);
+      }
+      
+      // Redirect to dashboard (token is stored automatically by api.auth)
       window.location.href = '/dashboard';
     } catch (error: any) {
       setError(error.message || 'Authentication failed');

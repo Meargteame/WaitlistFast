@@ -160,6 +160,16 @@ export const api = {
     getAnalytics: (slug: string) => fetchAPI(`/waitlists/${slug}/analytics`),
   },
   
+  campaigns: {
+    list: (slug: string) => fetchAPI(`/waitlists/${slug}/campaigns`),
+    
+    send: (slug: string, subject: string, message: string) =>
+      fetchAPI(`/waitlists/${slug}/campaigns`, {
+        method: 'POST',
+        body: JSON.stringify({ subject, message }),
+      }),
+  },
+  
   billing: {
     getUsage: () => fetchAPI('/billing/usage'),
     

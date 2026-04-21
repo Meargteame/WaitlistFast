@@ -87,18 +87,67 @@ export function trackAnalytics(waitlistId: string, eventType: 'view' | 'signup')
 
 export function getAnalytics(waitlistId: string) {
   const viewsStmt = db.prepare(
-    'SELECT COUNT(*) as count FROM analytics WHERE waitlist_id = ? AND event_type = "view"'
+    'SELECT COUNT(*) as count FROM analytics WHERE waitlist_id = ? AND event_type = ?'
   );
   const signupsStmt = db.prepare(
-    'SELECT COUNT(*) as count FROM analytics WHERE waitlist_id = ? AND event_type = "signup"'
+    'SELECT COUNT(*) as count FROM analytics WHERE waitlist_id = ? AND event_type = ?'
   );
   
-  const views = (viewsStmt.get(waitlistId) as { count: number }).count;
-  const signups = (signupsStmt.get(waitlistId) as { count: number }).count;
+  const views = (viewsStmt.get(waitlistId, 'view') as { count: number }).count;
+  const signups = (signupsStmt.get(waitlistId, 'signup') as { count: number }).count;
   
   const conversionRate = views > 0 ? (signups / views) * 100 : 0;
   
-  return { views, signups, conversionRate: conversionRate.toFixed(2) };
+  // Get time-series data (last 30 days)
+  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+  const timeSeriesStmt = db.prepare(`
+    SELECT 
+      DATE(created_at / 1000, 'unixepoch') as date,
+      SUM(CASE WHEN event_type = 'view' THEN 1 ELSE 0 END) as views,
+      SUM(CASE WHEN event_type = 'signup' THEN 1 ELSE 0 END) as signups
+    FROM analytics
+    WHERE waitlist_id = ? AND created_at >= ?
+    GROUP BY DATE(created_at / 1000, 'unixepoch')
+    ORDER BY date ASC
+  `);
+  
+  const timeSeriesData = timeSeriesStmt.all(waitlistId, thirtyDaysAgo) as Array<{
+    date: string;
+    views: number;
+    signups: number;
+  }>;
+  
+  // Get traffic sources
+  const trafficSourcesStmt = db.prepare(`
+    SELECT 
+      CASE 
+        WHEN referrer_url IS NULL OR referrer_url = '' THEN 'Direct'
+        WHEN referrer_url LIKE '%google%' THEN 'Google'
+        WHEN referrer_url LIKE '%facebook%' THEN 'Facebook'
+        WHEN referrer_url LIKE '%twitter%' OR referrer_url LIKE '%t.co%' THEN 'Twitter'
+        WHEN referrer_url LIKE '%linkedin%' THEN 'LinkedIn'
+        WHEN referrer_url LIKE '%reddit%' THEN 'Reddit'
+        ELSE 'Other'
+      END as source,
+      COUNT(*) as count
+    FROM analytics
+    WHERE waitlist_id = ? AND event_type = ?
+    GROUP BY source
+    ORDER BY count DESC
+  `);
+  
+  const trafficSources = trafficSourcesStmt.all(waitlistId, 'signup') as Array<{
+    source: string;
+    count: number;
+  }>;
+  
+  return { 
+    views, 
+    signups, 
+    conversionRate: conversionRate.toFixed(2),
+    timeSeriesData,
+    trafficSources
+  };
 }
 
 
@@ -182,4 +231,15 @@ export function updateWaitlist(slug: string, userId: string, updates: {
   stmt.run(...values);
 
   return getWaitlistBySlug(slug);
+}
+
+
+export function getCampaigns(waitlistId: string) {
+  const stmt = db.prepare(`
+    SELECT * FROM email_campaigns 
+    WHERE waitlist_id = ? 
+    ORDER BY created_at DESC
+  `);
+  
+  return stmt.all(waitlistId);
 }

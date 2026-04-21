@@ -144,6 +144,54 @@ export class EmailService {
     return { sent, failed };
   }
 
+  /**
+   * Send single campaign email (simplified for MVP)
+   */
+  async sendSingleCampaignEmail(
+    email: string,
+    subject: string,
+    message: string,
+    waitlistName: string
+  ): Promise<void> {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('[Email] Would send campaign email to:', email);
+      return;
+    }
+
+    try {
+      await this.resend.emails.send({
+        from: this.FROM_EMAIL,
+        to: email,
+        subject,
+        html: this.renderCampaignTemplate({ message, waitlistName }),
+      });
+    } catch (error) {
+      console.error('Failed to send campaign email:', error);
+      throw error;
+    }
+  }
+
+  private renderCampaignTemplate(data: { message: string; waitlistName: string }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: white; padding: 40px 30px; border: 1px solid #e0e0e0; border-radius: 10px;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">${data.waitlistName}</h2>
+            <div style="white-space: pre-wrap;">${data.message}</div>
+          </div>
+          <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+            <p>Sent from ${data.waitlistName} via WaitlistFast</p>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
   private renderWelcomeTemplate(data: {
     waitlistName: string;
     position: number;

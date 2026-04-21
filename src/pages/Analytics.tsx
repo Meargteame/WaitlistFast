@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { BarChart3, Users, Eye, TrendingUp, Download } from 'lucide-react';
+import { BarChart3, Users, Eye, TrendingUp, Download, Globe, Mail } from 'lucide-react';
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { api } from '../lib/api';
 import DashboardLayout from '../components/DashboardLayout';
 import ErrorModal from '../components/ErrorModal';
@@ -34,21 +35,44 @@ export default function Analytics() {
 
   function exportCSV() {
     const csv = [
-      ['Email', 'Position', 'Joined Date'],
+      ['Email', 'Position', 'Joined Date', 'Joined Time', 'Referral Code'],
       ...signups.map((s) => [
         s.email,
         s.position,
         new Date(s.created_at).toLocaleDateString(),
+        new Date(s.created_at).toLocaleTimeString(),
+        s.referral_code || '',
       ]),
     ]
-      .map((row) => row.join(','))
+      .map((row) => row.map(cell => `"${cell}"`).join(','))
       .join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${slug}-signups.csv`;
+    a.download = `${slug}-signups-${Date.now()}.csv`;
+    a.click();
+  }
+
+  function exportJSON() {
+    const data = {
+      waitlist: slug,
+      exportedAt: new Date().toISOString(),
+      totalSignups: signups.length,
+      signups: signups.map(s => ({
+        email: s.email,
+        position: s.position,
+        referralCode: s.referral_code,
+        joinedAt: new Date(s.created_at).toISOString(),
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slug}-signups-${Date.now()}.json`;
     a.click();
   }
 
@@ -57,6 +81,24 @@ export default function Analytics() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-zinc-500">Loading...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !analytics || !signups) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-zinc-500 mb-4">{error || 'Failed to load analytics'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-zinc-900 font-medium hover:underline"
+            >
+              Try again
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -77,6 +119,13 @@ export default function Analytics() {
               className="border border-zinc-200 px-6 py-3 rounded-full font-medium hover:bg-zinc-50 transition-all"
             >
               Back to Dashboard
+            </a>
+            <a
+              href={`/campaigns/${slug}`}
+              className="flex items-center gap-2 border border-zinc-200 px-6 py-3 rounded-full font-medium hover:bg-zinc-50 transition-all"
+            >
+              <Mail className="w-4 h-4" />
+              Email Campaigns
             </a>
             <a
               href={`/w/${slug}`}
@@ -141,16 +190,120 @@ export default function Analytics() {
           </motion.div>
         </div>
 
+        {/* Time Series Chart */}
+        {analytics.timeSeriesData && analytics.timeSeriesData.length > 0 && (
+          <div className="bg-white border border-zinc-200 rounded-3xl p-8 mb-12">
+            <h2 className="text-2xl font-bold mb-6">Signups Over Time</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={analytics.timeSeriesData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#71717a"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#71717a"
+                  style={{ fontSize: '12px' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #e4e4e7',
+                    borderRadius: '12px',
+                    padding: '12px'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="views" 
+                  stroke="#71717a" 
+                  strokeWidth={2}
+                  dot={{ fill: '#71717a', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="signups" 
+                  stroke="#18181b" 
+                  strokeWidth={2}
+                  dot={{ fill: '#18181b', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Traffic Sources */}
+        {analytics.trafficSources && analytics.trafficSources.length > 0 && (
+          <div className="bg-white border border-zinc-200 rounded-3xl p-8 mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <Globe className="w-6 h-6 text-zinc-900" />
+              <h2 className="text-2xl font-bold">Traffic Sources</h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8">
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={analytics.trafficSources}
+                    dataKey="count"
+                    nameKey="source"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                  >
+                    {analytics.trafficSources.map((entry: any, index: number) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={['#18181b', '#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7'][index % 6]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-col justify-center">
+                {analytics.trafficSources.map((source: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ 
+                          backgroundColor: ['#18181b', '#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7'][index % 6] 
+                        }}
+                      />
+                      <span className="font-medium">{source.source}</span>
+                    </div>
+                    <span className="text-zinc-500">{source.count} signups</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white border border-zinc-200 rounded-3xl p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Email Signups</h2>
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-2 bg-zinc-900 text-white px-6 py-3 rounded-full font-medium hover:bg-zinc-800 transition-all"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={exportJSON}
+                className="flex items-center gap-2 border border-zinc-200 px-6 py-3 rounded-full font-medium hover:bg-zinc-50 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                Export JSON
+              </button>
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-2 bg-zinc-900 text-white px-6 py-3 rounded-full font-medium hover:bg-zinc-800 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
           </div>
 
           {signups.length === 0 ? (

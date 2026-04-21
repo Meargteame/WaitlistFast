@@ -1,6 +1,6 @@
-import { MinimalTemplate } from '../templates/MinimalTemplate';
-import { StartupTemplate } from '../templates/StartupTemplate';
-import { BoldTemplate } from '../templates/BoldTemplate';
+import MinimalTemplate from '../templates/MinimalTemplate';
+import StartupTemplate from '../templates/StartupTemplate';
+import BoldTemplate from '../templates/BoldTemplate';
 import { ProductTemplate } from '../templates/ProductTemplate';
 import { ComingSoonTemplate } from '../templates/ComingSoonTemplate';
 import type { TemplateId } from '../../lib/templates';

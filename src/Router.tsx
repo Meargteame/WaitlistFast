@@ -10,6 +10,7 @@ import { VerifyEmail } from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { Billing } from './pages/Billing';
+import { EmailCampaigns } from './pages/EmailCampaigns';
 
 export default function Router() {
   const [route, setRoute] = useState(window.location.pathname);
@@ -33,6 +34,7 @@ export default function Router() {
   if (route === '/forgot-password') return <ForgotPassword />;
   if (route === '/reset-password') return <ResetPassword />;
   if (route.startsWith('/customize/')) return <Customize />;
+  if (route.startsWith('/campaigns/')) return <EmailCampaigns />;
   if (route.startsWith('/w/')) return <WaitlistPage />;
   if (route.startsWith('/analytics/')) return <Analytics />;
 

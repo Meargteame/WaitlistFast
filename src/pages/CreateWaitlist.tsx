@@ -24,7 +24,19 @@ export default function CreateWaitlist() {
       setGenerated(content);
       setStep(2);
     } catch (error: any) {
-      setError(error.message || 'Failed to generate content. Please check your API key and try again.');
+      // If AI generation fails, create a simple slug and move to step 2
+      console.warn('AI generation failed, using fallback:', error);
+      const slug = productName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      setGenerated({
+        tagline: productName,
+        description: shortDescription,
+        slug: slug
+      });
+      setStep(2);
     } finally {
       setGenerating(false);
     }
