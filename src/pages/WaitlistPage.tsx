@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Users, CheckCircle2, Zap } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { api } from '../lib/api';
+import { MinimalTemplate } from '../components/templates/MinimalTemplate';
+import { StartupTemplate } from '../components/templates/StartupTemplate';
+import { BoldTemplate } from '../components/templates/BoldTemplate';
+import { ProductTemplate } from '../components/templates/ProductTemplate';
+import { ComingSoonTemplate } from '../components/templates/ComingSoonTemplate';
 
 export default function WaitlistPage() {
   const [waitlist, setWaitlist] = useState<any>(null);
@@ -28,19 +33,55 @@ export default function WaitlistPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(email: string) {
     setSubmitting(true);
 
     try {
       const result = await api.waitlists.signup(slug, email);
       setPosition(result.position);
       setSuccess(true);
+      setEmail(email);
     } catch (error: any) {
       alert(error.message);
       setSubmitting(false);
+      throw error;
     }
   }
+
+  const renderTemplate = () => {
+    if (!waitlist || !waitlist.waitlist) return null;
+
+    const w = waitlist.waitlist;
+    const templateProps = {
+      waitlist: {
+        name: w.name,
+        description: w.description,
+        logoUrl: w.logo_url,
+        primaryColor: w.primary_color || '#18181b',
+        ctaText: w.cta_text || 'Join the waitlist',
+        showCounter: w.show_counter !== 0,
+        features: w.features_json ? JSON.parse(w.features_json) : [],
+        socialLinks: w.social_links_json ? JSON.parse(w.social_links_json) : [],
+      },
+      signupCount: waitlist.signupCount || 0,
+      onSignup: handleSubmit,
+    };
+
+    const template = w.template || 'minimal';
+
+    switch (template) {
+      case 'startup':
+        return <StartupTemplate {...templateProps} />;
+      case 'bold':
+        return <BoldTemplate {...templateProps} />;
+      case 'product':
+        return <ProductTemplate {...templateProps} />;
+      case 'comingSoon':
+        return <ComingSoonTemplate {...templateProps} />;
+      default:
+        return <MinimalTemplate {...templateProps} />;
+    }
+  };
 
   if (loading) {
     return (
@@ -85,55 +126,5 @@ export default function WaitlistPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl w-full"
-      >
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-zinc-200">
-            <Zap className="text-white w-10 h-10 fill-current" />
-          </div>
-          <h1 className="text-5xl font-bold mb-4">{waitlist.name}</h1>
-          <p className="text-xl text-zinc-600 mb-8">{waitlist.description}</p>
-        </div>
-
-        <div className="bg-white border border-zinc-200 rounded-3xl p-12">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
-              <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 w-6 h-6" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full pl-14 pr-6 py-5 bg-zinc-50 border border-zinc-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-zinc-100 transition-all text-lg"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-zinc-900 text-white py-5 rounded-2xl font-bold text-xl shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all disabled:opacity-50"
-            >
-              {submitting ? 'Joining...' : 'Join the waitlist'}
-            </button>
-          </form>
-
-          <div className="flex items-center justify-center gap-3 text-zinc-500 font-medium mt-6">
-            <Users className="w-5 h-5" />
-            <span>{waitlist.signupCount} people on the waitlist</span>
-          </div>
-        </div>
-
-        <div className="text-center mt-8">
-          <p className="text-sm text-zinc-400">
-            Powered by <a href="/" className="text-zinc-600 hover:text-zinc-900 font-medium">WaitlistFast</a>
-          </p>
-        </div>
-      </motion.div>
-    </div>
-  );
+  return renderTemplate();
 }

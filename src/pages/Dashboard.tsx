@@ -94,7 +94,13 @@ export default function Dashboard() {
                     className="flex-1 bg-zinc-900 text-white py-2 rounded-full text-sm font-medium hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                   >
                     <ExternalLink className="w-4 h-4" />
-                    View Page
+                    View
+                  </a>
+                  <a
+                    href={`/customize/${waitlist.slug}`}
+                    className="flex-1 border border-zinc-200 py-2 rounded-full text-sm font-medium hover:bg-zinc-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    Customize
                   </a>
                   <a
                     href={`/analytics/${waitlist.slug}`}

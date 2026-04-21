@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, LayoutDashboard, Plus, LogOut } from 'lucide-react';
+import { Zap, LayoutDashboard, Plus, CreditCard, LogOut } from 'lucide-react';
 import { clearSession } from '../lib/api';
 
 interface SidebarProps {
@@ -15,6 +15,7 @@ export default function Sidebar({ currentPage = 'dashboard' }: SidebarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { id: 'create', label: 'Create Waitlist', icon: Plus, href: '/create' },
+    { id: 'billing', label: 'Billing', icon: CreditCard, href: '/billing' },
   ];
 
   return (

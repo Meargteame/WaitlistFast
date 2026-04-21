@@ -5,6 +5,11 @@ import Dashboard from './pages/Dashboard';
 import CreateWaitlist from './pages/CreateWaitlist';
 import WaitlistPage from './pages/WaitlistPage';
 import Analytics from './pages/Analytics';
+import { Customize } from './pages/Customize';
+import { VerifyEmail } from './pages/VerifyEmail';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { Billing } from './pages/Billing';
 
 export default function Router() {
   const [route, setRoute] = useState(window.location.pathname);
@@ -23,6 +28,11 @@ export default function Router() {
   if (route === '/login') return <Login />;
   if (route === '/dashboard') return <Dashboard />;
   if (route === '/create') return <CreateWaitlist />;
+  if (route === '/billing') return <Billing />;
+  if (route === '/verify-email') return <VerifyEmail />;
+  if (route === '/forgot-password') return <ForgotPassword />;
+  if (route === '/reset-password') return <ResetPassword />;
+  if (route.startsWith('/customize/')) return <Customize />;
   if (route.startsWith('/w/')) return <WaitlistPage />;
   if (route.startsWith('/analytics/')) return <Analytics />;
 

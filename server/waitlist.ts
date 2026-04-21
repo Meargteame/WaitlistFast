@@ -22,7 +22,10 @@ export function createWaitlist(userId: string, name: string, description: string
 
 export function getWaitlistBySlug(slug: string) {
   const stmt = db.prepare(
-    'SELECT id, user_id, slug, name, description, logo_url, primary_color, created_at FROM waitlists WHERE slug = ?'
+    `SELECT id, user_id, slug, name, description, logo_url, template, primary_color, 
+     font_family, background_type, background_value, cta_text, show_counter, 
+     custom_css, features_json, social_links_json, created_at 
+     FROM waitlists WHERE slug = ?`
   );
   return stmt.get(slug);
 }
@@ -96,4 +99,87 @@ export function getAnalytics(waitlistId: string) {
   const conversionRate = views > 0 ? (signups / views) * 100 : 0;
   
   return { views, signups, conversionRate: conversionRate.toFixed(2) };
+}
+
+
+export function updateWaitlist(slug: string, userId: string, updates: {
+  template?: string;
+  primaryColor?: string;
+  fontFamily?: string;
+  backgroundType?: string;
+  backgroundValue?: string;
+  ctaText?: string;
+  showCounter?: boolean;
+  logoUrl?: string;
+  customCss?: string;
+  features?: any[];
+  socialLinks?: any[];
+}) {
+  // First verify ownership
+  const waitlist = getWaitlistBySlug(slug) as any;
+  if (!waitlist || waitlist.user_id !== userId) {
+    throw new Error('Waitlist not found or unauthorized');
+  }
+
+  const fields: string[] = [];
+  const values: any[] = [];
+
+  if (updates.template !== undefined) {
+    fields.push('template = ?');
+    values.push(updates.template);
+  }
+  if (updates.primaryColor !== undefined) {
+    fields.push('primary_color = ?');
+    values.push(updates.primaryColor);
+  }
+  if (updates.fontFamily !== undefined) {
+    fields.push('font_family = ?');
+    values.push(updates.fontFamily);
+  }
+  if (updates.backgroundType !== undefined) {
+    fields.push('background_type = ?');
+    values.push(updates.backgroundType);
+  }
+  if (updates.backgroundValue !== undefined) {
+    fields.push('background_value = ?');
+    values.push(updates.backgroundValue);
+  }
+  if (updates.ctaText !== undefined) {
+    fields.push('cta_text = ?');
+    values.push(updates.ctaText);
+  }
+  if (updates.showCounter !== undefined) {
+    fields.push('show_counter = ?');
+    values.push(updates.showCounter ? 1 : 0);
+  }
+  if (updates.logoUrl !== undefined) {
+    fields.push('logo_url = ?');
+    values.push(updates.logoUrl);
+  }
+  if (updates.customCss !== undefined) {
+    fields.push('custom_css = ?');
+    values.push(updates.customCss);
+  }
+  if (updates.features !== undefined) {
+    fields.push('features_json = ?');
+    values.push(JSON.stringify(updates.features));
+  }
+  if (updates.socialLinks !== undefined) {
+    fields.push('social_links_json = ?');
+    values.push(JSON.stringify(updates.socialLinks));
+  }
+
+  if (fields.length === 0) {
+    return waitlist;
+  }
+
+  values.push(slug);
+
+  const stmt = db.prepare(
+    `UPDATE waitlists SET ${fields.join(', ')} WHERE slug = ?`
+  );
+
+  stmt.run(...values);
+
+  return getWaitlistBySlug(slug);
 }
